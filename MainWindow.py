@@ -2,12 +2,13 @@ import json
 import os
 import random
 import winsound
-from PyQt5.QtWidgets import QMainWindow, QDialog, QLineEdit, QListWidget, QHBoxLayout, QListWidgetItem, QRadioButton,  QButtonGroup
+from PyQt5.QtWidgets import QMainWindow, QRadioButton, QButtonGroup, QLabel
 from pathlib import Path
 
 from ClassroomUI import *
 from EditDialog import *
 from Student import *
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -33,6 +34,13 @@ class MainWindow(QMainWindow):
         self.save_button.clicked.connect(self.save)
         self.input_layout.addWidget(self.save_button)
 
+        # students counter
+        self.counter_layout = QHBoxLayout()
+        self.counter_layout.setAlignment(Qt.AlignLeft)
+        self.text_counter = QLabel(self)
+        self.text_counter.setText("Пустой класс")
+        self.counter_layout.addWidget(self.text_counter)
+
         # Радиокнопки для выбора пола
         self.sex_layout = QHBoxLayout()
         self.sex_layout.setAlignment(Qt.AlignRight)
@@ -45,7 +53,15 @@ class MainWindow(QMainWindow):
         self.sex_layout.addWidget(self.male_radio)
         self.sex_layout.addWidget(self.female_radio)
         self.layout.addLayout(self.input_layout)
-        self.layout.addLayout(self.sex_layout)
+
+        self.mix_layout = QHBoxLayout()
+        self.mix_layout.addLayout(self.counter_layout)
+        self.mix_layout.addLayout(self.sex_layout)
+        self.layout.addLayout(self.mix_layout)
+
+        # self.layout.addLayout(self.sex_layout)
+        # self.layout.addLayout(self.counter_layout)
+
 
         self.student_list = QListWidget(self)
         self.layout.addWidget(self.student_list)
@@ -57,6 +73,23 @@ class MainWindow(QMainWindow):
         self.students = []
         self.check_save()
 
+    def updateCounter(self):
+        n = len(self.students)
+
+        n100 = n % 100
+        n10 = n % 10
+
+        if 11 <= n100 <= 14:
+            self.text_counter.setText(f"{n} учеников")
+            return
+        if n10 == 1:
+            self.text_counter.setText(f"{n} ученик")
+            return
+        if 2 <= n10 <= 4:
+            self.text_counter.setText(f"{n} ученика")
+            return
+
+        self.text_counter.setText(f"{n} учеников")
     def save(self, mute=False):
 
         save_dir = Path(os.path.expandvars(r"%appdata%\ClassManager"))
@@ -80,6 +113,7 @@ class MainWindow(QMainWindow):
                         data = json.loads(line)
                         print(data)
                         self.students.append(Student(self, **data))
+
                     except Exception:
                         self.students.clear()
                         file.unlink(missing_ok=True)
@@ -136,6 +170,7 @@ class MainWindow(QMainWindow):
         self.save(mute=True)
 
     def update_student_list(self):
+        self.updateCounter()
         self.student_list.clear()
         for student in self.students:
             item = QListWidgetItem()
