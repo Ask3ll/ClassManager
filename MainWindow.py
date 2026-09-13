@@ -9,6 +9,8 @@ from ClassroomUI import *
 from EditDialog import *
 from Student import *
 
+# TODO
+# 1. Отображение у кого есть prefers а у кого есть
 
 class MainWindow(QMainWindow):
     def __init__(self):

@@ -6,8 +6,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
 
-
-
+# TODO
+# 1. Add sex change
 class EditStudentDialog(QDialog):
     def __init__(self, student, students, parent=None):
         super().__init__(parent)
