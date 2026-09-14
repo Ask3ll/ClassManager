@@ -9,8 +9,13 @@ from ClassroomUI import *
 from EditDialog import *
 from Student import *
 
+
 # TODO
 # 1. Отображение у кого есть prefers а у кого есть
+# 2. Убрать прокрутку в начало списка при добавлении prefera
+# 3. Добавить алфавитную сортировку
+
+# to-build: .\.venv\Scripts\pyinstaller.exe -D -w main.py
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -23,7 +28,7 @@ class MainWindow(QMainWindow):
 
         self.layout = QVBoxLayout(self.central_widget)
 
-        # Горизонтальный layout для поля ввода и кнопки
+        # горизонтальный layout для поля ввода и кнопки
         self.input_layout = QHBoxLayout()
         self.qle = QLineEdit(self)
         self.qle.setPlaceholderText("Имя Ученика")
@@ -43,7 +48,7 @@ class MainWindow(QMainWindow):
         self.text_counter.setText("Пустой класс")
         self.counter_layout.addWidget(self.text_counter)
 
-        # Радиокнопки для выбора пола
+        # радиокнопки для выбора пола
         self.sex_layout = QHBoxLayout()
         self.sex_layout.setAlignment(Qt.AlignRight)
         self.male_radio = QRadioButton("Мальчик", self)
@@ -63,7 +68,6 @@ class MainWindow(QMainWindow):
 
         # self.layout.addLayout(self.sex_layout)
         # self.layout.addLayout(self.counter_layout)
-
 
         self.student_list = QListWidget(self)
         self.layout.addWidget(self.student_list)
@@ -92,6 +96,7 @@ class MainWindow(QMainWindow):
             return
 
         self.text_counter.setText(f"{n} учеников")
+
     def save(self, mute=False):
 
         save_dir = Path(os.path.expandvars(r"%appdata%\ClassManager"))
@@ -100,7 +105,7 @@ class MainWindow(QMainWindow):
         file_path = save_dir / "classman_save.jsonl"
         file_path.touch(exist_ok=True)
 
-        file_path.write_text("\n".join(map(lambda x: x.convert_to_str(), self.students)), "utf-8")
+        file_path.write_text("\n".join(map(lambda student: student.convert_to_str(), self.students)), "utf-8")
         if not mute:
             winsound.MessageBeep(winsound.MB_OK)
 
@@ -115,7 +120,6 @@ class MainWindow(QMainWindow):
                         data = json.loads(line)
                         print(data)
                         self.students.append(Student(self, **data))
-
                     except Exception:
                         self.students.clear()
                         file.unlink(missing_ok=True)
@@ -143,14 +147,14 @@ class MainWindow(QMainWindow):
         for column, row, seat in seats:
             if not lstudents:
                 break
-            highest = [0, None]
+            highest = [0, "-"]
             if lstudents:
                 for student in lstudents:
                     st = student.seat(row, column, seat, classroom)
                     if st >= highest[0]:
                         highest = [st, student]
                 classroom[column][row][seat] = highest
-                if highest[1] is not None:
+                if highest[1] != "-":
                     lstudents.remove(highest[1])
             else:
                 break
@@ -173,6 +177,10 @@ class MainWindow(QMainWindow):
 
     def update_student_list(self):
         self.updateCounter()
+
+        scroll_bar = self.student_list.verticalScrollBar()
+        scroll_position = scroll_bar.value()
+
         self.student_list.clear()
         for student in self.students:
             item = QListWidgetItem()
@@ -200,6 +208,7 @@ class MainWindow(QMainWindow):
 
             # Устанавливаем высоту элемента списка
             item.setSizeHint(widget.sizeHint())
+        scroll_bar.setValue(scroll_position)
 
     def edit_student(self, student):
         # Открываем окно редактирования ученика

@@ -34,7 +34,7 @@ class Student:
         self._friends.append(self.window.students.index(friend))
 
     def del_from_friends(self, friend):
-        self._friends.pop(self.window.students.index(friend))
+        self._friends.remove(self.window.students.index(friend))
 
     def __str__(self):
         return self.name
@@ -70,12 +70,13 @@ class Student:
                     score += 25 // (desk_id + 1)
                 else:
                     score -= 3 * desk_id + 1
-            elif mate is not None and prefer == "Лучше сидеть с мальчиком":
+            elif mate != "-" and prefer == "Лучше сидеть с мальчиком":
                 if mate.sex == "Мальчик":
                     score += 15
                 elif mate.sex == "Девочка":
                     score -= 8
-            elif mate is not None and prefer == "Лучше сидеть с девочкой":
+            elif mate != "-" and prefer == "Лучше сидеть с девочкой":
+                print(mate)
                 if mate.sex == "Мальчик":
                     score -= 12
                 elif mate.sex == "Девочка":
@@ -95,7 +96,7 @@ class Student:
                     score += 25
                 elif desk_id in [3, 4, 5]:
                     score -= 15
-        if mate is not None and mate in self.friends:
+        if mate != "-" and mate in self.friends:
             score -= 50
 
         mates = []
