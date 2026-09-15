@@ -1,5 +1,8 @@
 import json
 
+import MainWindow
+
+
 class Student:
     def __init__(self, _window, name, _id, sex, friends=None, prefers=None):
         if prefers is None:
@@ -12,7 +15,7 @@ class Student:
         self.sex = sex
         self._friends = friends  # Список друзей (объектов Student)
         self.prefers = prefers  # Список пожеланий
-        self.window = _window
+        self.window: MainWindow = _window
 
     @property
     def friends(self):
@@ -47,9 +50,9 @@ class Student:
     def convert_to_str(self):
         return self.__repr__()
 
-    def seat(self, desk_id, column, _index, classroom):
+    def seat(self, line, row, _index, classroom) -> int:
         score = 0
-        mate = classroom[column][desk_id][int(not bool(_index))][1]
+        mate = classroom[row][line][int(not bool(_index))][1]
         friends = self.friends
         for prefer in self.prefers:
             for _student in self.window.students:
@@ -66,35 +69,41 @@ class Student:
                 if _student.name == mate:
                     mate = _student
             if prefer == "Зрение" or prefer == "Лучше сидеть спереди":
-                if desk_id in [0, 1, 2]:
-                    score += 25 // (desk_id + 1)
+                if line in [0, 1, 2]:
+                    score += 25 // (line + 1)
                 else:
-                    score -= 3 * desk_id + 1
+                    score -= 3 * line + 1
             elif mate != "-" and prefer == "Лучше сидеть с мальчиком":
                 if mate.sex == "Мальчик":
                     score += 15
                 elif mate.sex == "Девочка":
                     score -= 8
             elif mate != "-" and prefer == "Лучше сидеть с девочкой":
-                print(mate)
+
                 if mate.sex == "Мальчик":
                     score -= 12
                 elif mate.sex == "Девочка":
                     score += 15
             elif prefer == "Лучше сидеть сзади":
-                if desk_id in [5, 4, 3]:
-                    score += 5 * desk_id
+                lines = self.window.lines // 2
+                values = (self.window.lines - i - 1 for i in range(lines))
+
+                if line in values:
+                    score += 5 * line
                 else:
-                    score -= 25 // (desk_id + 1)
+                    score -= 25 // (line + 1)
+
             elif prefer == "Лучше сидеть в середине":
-                if desk_id in [2, 3]:
+                mid = self.window.lines // 2
+
+                if line in range(mid - 1, self.window.lines - 1 - 1):
                     score += 20
-                elif desk_id in [0, 5]:
+                elif line in [0, 5]:
                     score -= 20
             elif prefer == "Лучше сидеть спереди":
-                if desk_id in [0, 1, 2]:
+                if line in [0, 1, 2]:
                     score += 25
-                elif desk_id in [3, 4, 5]:
+                else:
                     score -= 15
         if mate != "-" and mate in self.friends:
             score -= 50
@@ -102,51 +111,50 @@ class Student:
         mates = []
 
         desk_up = [None, None]
-        if desk_id - 1 > 0:
-            desk_up = classroom[column][desk_id - 1][1]
+        if line != 0:
+            desk_up = classroom[row][line - 1][1]
             mates.append(desk_up[0])
             mates.append(desk_up[1])
 
         desk_right_up = [None, None]
-        if column != 2 and desk_id - 1 > 0:
-            desk_right_up = classroom[column + 1][desk_id - 1][1]
+        if row != (self.window.rows - 1) and line != 0:
+            desk_right_up = classroom[row + 1][line - 1][1]
             mates.append(desk_right_up[0])
             mates.append(desk_right_up[1])
 
         desk_right = [None, None]
-        if column != 2:
-            desk_right = classroom[column + 1][desk_id][1]
+        if row != (self.window.rows - 1):
+            desk_right = classroom[row + 1][line][1]
             mates.append(desk_right[0])
             mates.append(desk_right[1])
 
         desk_right_down = [None, None]
-
-        if column != 2 and desk_id + 1 <= 5:
-            desk_right_down = classroom[column + 1][desk_id + 1][1]
+        if row != (self.window.rows - 1) and line + 1 <= (self.window.lines - 1):
+            desk_right_down = classroom[row + 1][line + 1][1]
             mates.append(desk_right_down[0])
             mates.append(desk_right_down[1])
 
         desk_down = [None, None]
-        if desk_id + 1 <= 5:
-            desk_down = classroom[column][desk_id + 1][1]
+        if line < self.window.lines - 1:
+            desk_down = classroom[row][line + 1][1]
             mates.append(desk_down[0])
             mates.append(desk_down[1])
 
         desk_left_down = [None, None]
-        if column != 0 and desk_id + 1 <= 5:
-            desk_left_down = classroom[column - 1][desk_id + 1][1]
+        if row != 0 and line < self.window.lines - 1:
+            desk_left_down = classroom[row - 1][line + 1][1]
             mates.append(desk_left_down[0])
             mates.append(desk_left_down[1])
 
         desk_left = [None, None]
-        if column != 0:
-            desk_left = classroom[column - 1][desk_id][1]
+        if row != 0:
+            desk_left = classroom[row - 1][line][1]
             mates.append(desk_left[0])
             mates.append(desk_left[1])
 
         desk_left_up = [None, None]
-        if column != 0 and desk_id - 1 > 0:
-            desk_left_up = classroom[column - 1][desk_id - 1][1]
+        if row != 0 and line != 0:
+            desk_left_up = classroom[row - 1][line - 1][1]
             mates.append(desk_left_up[0])
             mates.append(desk_left_up[1])
         for _mate in mates:

@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Управление учениками")
-        self.setGeometry(100, 100, 600, 400)
+        self.setGeometry(*get_pos(900, 900))
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -43,6 +43,7 @@ class MainWindow(QMainWindow):
 
         # students counter
         self.counter_layout = QHBoxLayout()
+        # noinspection PyUnresolvedReferences
         self.counter_layout.setAlignment(Qt.AlignLeft)
         self.text_counter = QLabel(self)
         self.text_counter.setText("Пустой класс")
@@ -50,6 +51,7 @@ class MainWindow(QMainWindow):
 
         # радиокнопки для выбора пола
         self.sex_layout = QHBoxLayout()
+        # noinspection PyUnresolvedReferences
         self.sex_layout.setAlignment(Qt.AlignRight)
         self.male_radio = QRadioButton("Мальчик", self)
         self.male_radio.setChecked(True)
@@ -79,11 +81,17 @@ class MainWindow(QMainWindow):
         self.students = []
         self.check_save()
 
+        # rows и lines, можно изменять
+        self.rows = 3
+        self.lines = 6
     def updateCounter(self):
         n = len(self.students)
 
         n100 = n % 100
         n10 = n % 10
+        if n == 0:
+            self.text_counter.setText("Пустой класс")
+            return
 
         if 11 <= n100 <= 14:
             self.text_counter.setText(f"{n} учеников")
@@ -118,7 +126,7 @@ class MainWindow(QMainWindow):
                 if line.strip():
                     try:
                         data = json.loads(line)
-                        print(data)
+
                         self.students.append(Student(self, **data))
                     except Exception:
                         self.students.clear()
@@ -128,11 +136,20 @@ class MainWindow(QMainWindow):
             break
 
     def _sort(self):
-        classroom = [[], [], []]
-        # while len(classroom[0]) + len(classroom[1]) + len(classroom[2]) != len(self.students):
-        classroom[0] = [[[0, "-"], [0, "-"]] for _ in range(6)]
-        classroom[1] = [[[0, "-"], [0, "-"]] for _ in range(6)]
-        classroom[2] = [[[0, "-"], [0, "-"]] for _ in range(6)]
+        classroom = []
+        seats = []
+
+        for row in range(self.rows):
+            classroom.append([])
+            seats.append([])
+            for line in range(self.lines):
+                classroom[row].append([[0, "-"], [0, "-"]])
+
+                seats.append((row, line, 0))
+                seats.append((row, line, 1))
+
+
+
         lstudents = self.students.copy()
 
         seats = []
@@ -158,7 +175,8 @@ class MainWindow(QMainWindow):
                     lstudents.remove(highest[1])
             else:
                 break
-        swindow = Classroom(classroom, self)
+
+        swindow = Classroom(classroom, self, self.rows, self.lines)
         self.hide()
         swindow.show()
 

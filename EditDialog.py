@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QScrollAr
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
+from utils import *
 
 # TODO
 # 1. Add sex change
@@ -12,7 +13,7 @@ class EditStudentDialog(QDialog):
     def __init__(self, student, students, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Редактировать ученика")
-        self.setGeometry(100, 100, 400, 400)
+        self.setGeometry(*get_pos(400, 400))
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.student = student
         self.students = students
@@ -27,6 +28,7 @@ class EditStudentDialog(QDialog):
         scroll_area = QScrollArea(self)
         scroll_widget = QWidget()
         self.friends_layout = QVBoxLayout(scroll_widget)
+        # noinspection PyUnresolvedReferences
         self.friends_layout.setAlignment(Qt.AlignTop)
         # Добавляем чекбоксы для выбора друзей
         self.friend_checkboxes = []
@@ -55,6 +57,7 @@ class EditStudentDialog(QDialog):
         if len(self.students) <= 1:
             index = self.prefers_combo.findText("Нельзя сажать с этим учеником")
             if index != -1:
+                # noinspection PyUnresolvedReferences
                 self.prefers_combo.setItemData(index, QColor(Qt.gray), Qt.TextColorRole)  # Серый цвет
                 self.prefers_combo.model().item(index).setEnabled(False)  # Отключаем пункт
 
