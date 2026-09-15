@@ -24,7 +24,9 @@ class EditStudentDialog(QDialog):
         self.name_input = QLineEdit(self.student.name, self)
         layout.addWidget(QLabel("Имя:"))
         layout.addWidget(self.name_input)
-        layout.addWidget(QLabel("Друзья:"))
+        layout.addWidget(QLabel("Друзья:")) # провеит
+
+
         scroll_area = QScrollArea(self)
         scroll_widget = QWidget()
         self.friends_layout = QVBoxLayout(scroll_widget)
