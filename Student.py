@@ -1,10 +1,14 @@
 import json
 
-import MainWindow
+# from MainWindow import MainWindow
 
 
 class Student:
-    def __init__(self, _window, name, _id, sex, friends=None, prefers=None):
+    def __init__(self, _window, name, sex, _id=None, friends=None, prefers=None):
+        if _id is None:
+            _id = _window.new_stud_id
+            _window.new_stud_id += 1
+
         if prefers is None:
             prefers = []
         if friends is None:
@@ -15,13 +19,13 @@ class Student:
         self.sex = sex
         self._friends = friends  # Список друзей (объектов Student)
         self.prefers = prefers  # Список пожеланий
-        self.window: MainWindow = _window
+        self.window = _window
 
     @property
     def friends(self):
         output = []
         for stud_id in self._friends:
-            output.append(self.window.students[stud_id])
+            output.append(self.window.get_student(stud_id))
 
         return output
 
@@ -29,22 +33,22 @@ class Student:
     def friends(self, fset):
         output = []
         for student in fset:
-            output.append(self.window.students.index(student))
+            output.append(student.id)
 
         self._friends = output
 
     def add_to_friends(self, friend):
-        self._friends.append(self.window.students.index(friend))
+        self._friends.append(friend.id)
 
     def del_from_friends(self, friend):
-        self._friends.remove(self.window.students.index(friend))
+        self._friends.remove(friend.id)
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
         return json.dumps(
-            {"name": self.name, "_id": self.id, "sex": self.sex, "friends": self._friends, "prefers": self.prefers},
+            {"name": self.name, "sex": self.sex, "_id": self.id, "friends": self._friends, "prefers": self.prefers},
             ensure_ascii=True)
 
     def convert_to_str(self):

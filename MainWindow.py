@@ -1,8 +1,7 @@
-import json
 import os
 import random
 import winsound
-from PyQt5.QtWidgets import QMainWindow, QRadioButton, QButtonGroup, QLabel
+from PyQt5.QtWidgets import QMainWindow, QRadioButton, QButtonGroup
 from pathlib import Path
 
 from ClassroomUI import *
@@ -79,6 +78,7 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.start_button)
 
         self.students = []
+        self.new_stud_id = 0
         self.check_save()
 
         # rows и lines, можно изменять
@@ -111,17 +111,26 @@ class MainWindow(QMainWindow):
         save_dir = Path(os.path.expandvars(r"%appdata%\ClassManager"))
         save_dir.mkdir(parents=True, exist_ok=True)
 
-        file_path = save_dir / "classman_save.jsonl"
-        file_path.touch(exist_ok=True)
+        studs_file_path = save_dir / "classman_save.jsonl"
+        studs_file_path.touch(exist_ok=True)
+        studs_file_path.write_text("\n".join(map(lambda student: student.convert_to_str(), self.students)), "utf-8")
 
-        file_path.write_text("\n".join(map(lambda student: student.convert_to_str(), self.students)), "utf-8")
+        data_file_path = save_dir / "classman_settings.ini"
+        data_file_path.touch(exist_ok=True)
+        data_file_path.write_text(str(self.new_stud_id), "utf-8")
         if not mute:
             winsound.MessageBeep(winsound.MB_OK)
 
     def check_save(self):
+
         save_dir = Path(os.path.expandvars(r"%appdata%\ClassManager"))
         save_dir.mkdir(parents=True, exist_ok=True)
         # classman_save_*.jsonl
+
+        for file in save_dir.glob("classman_settings.ini"):
+            settings_file = file
+            self.new_stud_id = int(file.read_text(encoding="utf-8"))
+
         for file in save_dir.glob("classman_save.jsonl"):
             for line in file.read_text(encoding="utf-8").split("\n"):
                 if line.strip():
@@ -130,8 +139,10 @@ class MainWindow(QMainWindow):
 
                         self.students.append(Student(self, **data))
                     except Exception:
+                        self.new_stud_id = 0
                         self.students.clear()
                         file.unlink(missing_ok=True)
+                        settings_file.unlink(missing_ok=True)
                         return
             self.update_student_list()
             break
@@ -180,9 +191,10 @@ class MainWindow(QMainWindow):
         swindow.show()
 
     def add_student(self):
-        if self.qle.text() != "" and self.qle.text() not in list(map(str, self.students)) and set(self.qle.text().lower()) <= set(rus + " "):
+        if self.qle.text() != "" and self.qle.text() not in list(map(str, self.students)) and set(
+                self.qle.text().lower()) <= set(rus + " "):
             sex = "Мальчик" if self.male_radio.isChecked() else "Девочка"
-            student = Student(self, self.qle.text(), len(self.students), sex)
+            student = Student(self, self.qle.text(), sex)
             self.students.append(student)
             self.update_student_list()
             self.qle.clear()  # Очищаем поле ввода после добавления
@@ -193,7 +205,6 @@ class MainWindow(QMainWindow):
     def students_sorted(self):
         if not self.students:
             return self.students
-
         return sorted(self.students, key=get_surname)
 
     def closeEvent(self, a0, QCloseEvent=None):
@@ -201,7 +212,9 @@ class MainWindow(QMainWindow):
 
     def update_student_list(self):
         self.updateCounter()
-
+        if not self.students:
+            self.new_stud_id = 0
+        print(self.new_stud_id)
         scroll_bar = self.student_list.verticalScrollBar()
         scroll_position = scroll_bar.value()
 
@@ -240,6 +253,12 @@ class MainWindow(QMainWindow):
         dialog = EditStudentDialog(student, self.students, self)
         if dialog.exec_() == QDialog.Accepted:
             self.update_student_list()
+
+    def get_student(self, student_id):
+        for student in self.students:
+            if student.id == student_id:
+                return student
+        return None
 
     def delete_student(self, student):
         for _student in student.friends:
