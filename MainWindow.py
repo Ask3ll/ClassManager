@@ -84,6 +84,7 @@ class MainWindow(QMainWindow):
         # rows и lines, можно изменять
         self.rows = 3
         self.lines = 6
+
     def updateCounter(self):
         n = len(self.students)
 
@@ -148,8 +149,6 @@ class MainWindow(QMainWindow):
                 seats.append((row, line, 0))
                 seats.append((row, line, 1))
 
-
-
         lstudents = self.students.copy()
 
         seats = []
@@ -181,7 +180,7 @@ class MainWindow(QMainWindow):
         swindow.show()
 
     def add_student(self):
-        if self.qle.text() != "" and self.qle.text() not in list(map(str, self.students)):
+        if self.qle.text() != "" and self.qle.text() not in list(map(str, self.students)) and set(self.qle.text().lower()) <= set(rus + " "):
             sex = "Мальчик" if self.male_radio.isChecked() else "Девочка"
             student = Student(self, self.qle.text(), len(self.students), sex)
             self.students.append(student)
@@ -189,6 +188,13 @@ class MainWindow(QMainWindow):
             self.qle.clear()  # Очищаем поле ввода после добавления
         else:
             winsound.MessageBeep(winsound.MB_ICONASTERISK)
+
+    @property
+    def students_sorted(self):
+        if not self.students:
+            return self.students
+
+        return sorted(self.students, key=get_surname)
 
     def closeEvent(self, a0, QCloseEvent=None):
         self.save(mute=True)
@@ -200,7 +206,8 @@ class MainWindow(QMainWindow):
         scroll_position = scroll_bar.value()
 
         self.student_list.clear()
-        for student in self.students:
+
+        for student in self.students_sorted:
             item = QListWidgetItem()
             self.student_list.addItem(item)
             # Создаем виджет для отображения имени и кнопок
