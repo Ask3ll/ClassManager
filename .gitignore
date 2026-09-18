@@ -6,3 +6,6 @@
 *.iml
 out
 gen
+/dist/
+/build/
+/main.spec

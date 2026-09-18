@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
         # горизонтальный layout для поля ввода и кнопки
         self.input_layout = QHBoxLayout()
         self.qle = QLineEdit(self)
-        self.qle.setPlaceholderText("Имя Ученика")
+        self.qle.setPlaceholderText("Фамилия Имя")
         self.add_button = QPushButton("Добавить ученика", self)
         self.add_button.clicked.connect(self.add_student)
         self.input_layout.addWidget(self.qle)
@@ -214,7 +214,7 @@ class MainWindow(QMainWindow):
         self.updateCounter()
         if not self.students:
             self.new_stud_id = 0
-        print(self.new_stud_id)
+
         scroll_bar = self.student_list.verticalScrollBar()
         scroll_position = scroll_bar.value()
 

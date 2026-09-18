@@ -10,3 +10,4 @@ def get_pos(x_size, y_size, x_offset=0, y_offset=0):
 rus = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
 
 def get_surname(std):
+    return std.name.split(" ")[0]
