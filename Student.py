@@ -63,6 +63,11 @@ class Student:
 
     def seat(self, classroom, line, row, _index, ) -> int:
         score = 0
+        if ((SeatInBackPrefer not in self.prefers) and (SeatInMiddlePrefer not in self.prefers)) and line in [0, 1, 2]:
+            to_add = 3 - line
+            if to_add > 0:
+                print(to_add*10, 123)
+                score += to_add*100
 
         mate = classroom[row][line][int(not bool(_index))][1]
         friends = self.friends.copy()

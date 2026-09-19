@@ -104,14 +104,16 @@ class Classroom(QWidget):
 class Desk(QFrame):
     def __init__(self, row, col, classroom):
         super().__init__()
+        self.slot1 = None
+        self.slot2 = None
+
         self.row = row
         self.col = col
         self.classroom = classroom
         self.setup_ui()
         self.setAcceptDrops(True)  # Разрешаем перетаскивание на парту
 
-        self.slot1 = None
-        self.slot2 = None
+
 
     def setup_ui(self):
         self.setFrameStyle(QFrame.Box | QFrame.Raised)

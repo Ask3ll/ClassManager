@@ -11,7 +11,7 @@ from Student import *
 # TODO
 # 1. Отображение у кого есть prefers а у кого есть
 
-# to-build: .\.venv\Scripts\pyinstaller.exe -D -w main.py
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
