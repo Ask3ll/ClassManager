@@ -1,5 +1,7 @@
 import json
 
+from Prefers import *
+
 # from MainWindow import MainWindow
 
 
@@ -9,8 +11,7 @@ class Student:
             _id = _window.new_stud_id
             _window.new_stud_id += 1
 
-        if prefers is None:
-            prefers = []
+
         if friends is None:
             friends = []
 
@@ -18,9 +19,13 @@ class Student:
         self.id = _id
         self.sex = sex
         self._friends = friends  # Список друзей (объектов Student)
-        self.prefers = prefers  # Список пожеланий
+        self.prefers = prefers  # Список пожеланий (PrefersList)
         self.window = _window
 
+        if prefers is None:
+            self.prefers = PrefersList(self)
+        else:
+            self.prefers = PrefersList(self, from_json=prefers)
     @property
     def friends(self):
         output = []
@@ -48,7 +53,7 @@ class Student:
 
     def __repr__(self):
         return json.dumps(
-            {"name": self.name, "sex": self.sex, "_id": self.id, "friends": self._friends, "prefers": self.prefers},
+            {"name": self.name, "sex": self.sex, "_id": self.id, "friends": self._friends, "prefers": str(self.prefers)},
             ensure_ascii=True)
 
     def convert_to_str(self):
@@ -56,39 +61,40 @@ class Student:
 
     def seat(self, line, row, _index, classroom) -> int:
         score = 0
+
         mate = classroom[row][line][int(not bool(_index))][1]
-        friends = self.friends
+        friends = self.friends.copy()
         for prefer in self.prefers:
             for _student in self.window.students:
-                if prefer.startswith("Нельзя сажать с ") and _student.name == prefer[len("Нельзя сажать с "):]:
-                    friends.append(_student)
-                    friends = list(set(friends))  # СДЕЛАТЬ ПРОВЕРКУ НА ДРУЗЕЙ И НЕЛЬЗЯ САЖАТЬ
+                if isinstance(prefer, DoNotSeatWithPrefer):
+                    if _student == prefer.other_student:
+                        friends.append(_student)
+                        friends = list(set(friends))
                 if self.sex == "Мальчик":
-                    if "Лучше сидеть с мальчиком" in _student.prefers:
+                    if SeatNextToMalePrefer in _student.prefers:
                         score += 30
                 elif self.sex == "Девочка":
-                    if "Лучше сидеть с девочкой" in _student.prefers:
+                    if SeatNextToFemalePrefer in _student.prefers:
                         score += 30
 
                 if _student.name == mate:
                     mate = _student
-            if prefer == "Зрение" or prefer == "Лучше сидеть спереди":
+            if isinstance(prefer, VisionPrefer) or isinstance(prefer, SeatInFrontPrefer):
                 if line in [0, 1, 2]:
                     score += 25 // (line + 1)
                 else:
                     score -= 3 * line + 1
-            elif mate != "-" and prefer == "Лучше сидеть с мальчиком":
+            elif mate != "-" and isinstance(prefer, SeatNextToMalePrefer):
                 if mate.sex == "Мальчик":
                     score += 15
                 elif mate.sex == "Девочка":
                     score -= 8
-            elif mate != "-" and prefer == "Лучше сидеть с девочкой":
-
+            elif mate != "-" and isinstance(prefer, SeatNextToFemalePrefer):
                 if mate.sex == "Мальчик":
                     score -= 12
                 elif mate.sex == "Девочка":
                     score += 15
-            elif prefer == "Лучше сидеть сзади":
+            elif isinstance(prefer, SeatInBackPrefer):
                 lines = self.window.lines // 2
                 values = (self.window.lines - i - 1 for i in range(lines))
 
@@ -97,18 +103,14 @@ class Student:
                 else:
                     score -= 25 // (line + 1)
 
-            elif prefer == "Лучше сидеть в середине":
+            elif isinstance(prefer, SeatInMiddlePrefer):
                 mid = self.window.lines // 2
 
                 if line in range(mid - 1, self.window.lines - 1 - 1):
                     score += 20
                 elif line in [0, 5]:
                     score -= 20
-            elif prefer == "Лучше сидеть спереди":
-                if line in [0, 1, 2]:
-                    score += 25
-                else:
-                    score -= 15
+
         if mate != "-" and mate in self.friends:
             score -= 50
 
@@ -166,3 +168,61 @@ class Student:
                 score -= 5
 
         return score
+
+
+class PrefersList(list):
+    def __init__(self, student, from_json=None):
+        super().__init__()
+        self.student = student
+
+        if from_json:
+            lst = json.loads(from_json)
+            for prefer in lst:
+                if isinstance(prefer, list):
+                    _prefer, _id = prefer
+
+                    self.append(eval(_prefer), int(_id))
+                else:
+                    self.append(eval(prefer))
+
+
+
+    def __repr__(self):
+        return json.dumps(list(map(lambda prefer: prefer.serialize(), self)), ensure_ascii=True)
+    def __str__(self):
+        return self.__repr__()
+
+
+    def __contains__(self, item):
+        # 1. если ищем сам объект предпочтения
+        if super().__contains__(item):
+            return True
+
+        # 2. если item — это строка
+        if isinstance(item, str):
+            return any(prefer.text == item for prefer in self)
+
+        # 3. если item — это класс
+        if isinstance(item, type):
+            return any(isinstance(prefer, item) for prefer in self)
+
+        return False
+
+    def append(self, item, arg=None):
+        if arg is not None:
+            super().append(item(self.student, arg))
+        else:
+            super().append(item(self.student))
+    def remove(self, item):
+        if super().__contains__(item):
+            super().remove(item)
+        elif isinstance(item, str):
+            for indx, prefer in enumerate(self):
+                if prefer.text == item:
+                    self.pop(indx)
+                    break
+        elif isinstance(item, type):
+            for indx, prefer in enumerate(self):
+                if isinstance(prefer, item):
+                    self.pop(indx)
+                    break

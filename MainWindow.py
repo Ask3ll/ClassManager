@@ -11,8 +11,6 @@ from Student import *
 
 # TODO
 # 1. Отображение у кого есть prefers а у кого есть
-# 2. Убрать прокрутку в начало списка при добавлении prefera
-# 3. Добавить алфавитную сортировку
 
 # to-build: .\.venv\Scripts\pyinstaller.exe -D -w main.py
 
@@ -109,6 +107,8 @@ class MainWindow(QMainWindow):
     def save(self, mute=False):
 
         save_dir = Path(os.path.expandvars(r"%appdata%\ClassManager"))
+
+
         save_dir.mkdir(parents=True, exist_ok=True)
 
         studs_file_path = save_dir / "classman_save.jsonl"
@@ -138,7 +138,7 @@ class MainWindow(QMainWindow):
                         data = json.loads(line)
 
                         self.students.append(Student(self, **data))
-                    except Exception:
+                    except Exception as e:
                         self.new_stud_id = 0
                         self.students.clear()
                         file.unlink(missing_ok=True)
@@ -153,7 +153,7 @@ class MainWindow(QMainWindow):
 
         for row in range(self.rows):
             classroom.append([])
-            seats.append([])
+
             for line in range(self.lines):
                 classroom[row].append([[0, "-"], [0, "-"]])
 
@@ -162,12 +162,12 @@ class MainWindow(QMainWindow):
 
         lstudents = self.students.copy()
 
-        seats = []
-
-        for column in range(3):
-            for row in range(6):
-                for seat in range(0, 2):
-                    seats.append((column, row, seat))
+        # seats = []
+        #
+        # for column in range(3):
+        #     for row in range(6):
+        #         for seat in range(0, 2):
+        #             seats.append((column, row, seat))
 
         random.shuffle(seats)
 
@@ -255,17 +255,26 @@ class MainWindow(QMainWindow):
             self.update_student_list()
 
     def get_student(self, student_id):
+        student_id = int(student_id)
         for student in self.students:
             if student.id == student_id:
                 return student
-        return None
+        raise Exception(f"Student not found, id: {student_id}")
+
+    def get_student_by_name(self, student_name):
+        for student in self.students:
+            if student.name == student_name:
+                return student
+        raise Exception(f"Student not found, name: {student_name}")
 
     def delete_student(self, student):
         for _student in student.friends:
             _student.del_from_friends(student)
+
         for _student in self.students:
             for prefer in _student.prefers:
-                if prefer[len("Нельзя сажать с "):] == f"{student.name}":
-                    _student.prefers.remove(prefer)
+                if isinstance(prefer, DoNotSeatWithPrefer):
+                    if prefer.other_student == self:
+                        _student.prefers.remove(prefer)
         self.students.remove(student)
         self.update_student_list()

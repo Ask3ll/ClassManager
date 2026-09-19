@@ -1,4 +1,3 @@
-
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QScrollArea, \
     QDialog, QLineEdit, QListWidget, QInputDialog, QHBoxLayout, QListWidgetItem, QCheckBox, \
      QComboBox, QMessageBox, QStyle
@@ -6,12 +5,14 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
 from utils import *
+from Prefers import *
 
 # TODO
 # 1. Add sex change
 class EditStudentDialog(QDialog):
     def __init__(self, student, students, parent=None):
         super().__init__(parent)
+
         self.setWindowTitle("Редактировать ученика")
         self.setGeometry(*get_pos(400, 400))
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
@@ -48,16 +49,16 @@ class EditStudentDialog(QDialog):
         # Выпадающий список для пожеланий
         layout.addWidget(QLabel("Пожелания:"))
         self.prefers_combo = QComboBox(self)
-        self.prefers_combo.addItems([
-            "Зрение", "Нельзя сажать с этим учеником", "Лучше сидеть с мальчиком",
-            "Лучше сидеть с девочкой", "Лучше сидеть сзади",
-            "Лучше сидеть в середине", "Лучше сидеть спереди"
-        ])
+
+        items = list(map(str, all_prefers))
+        items.insert(0, "-")
+        self.prefers_combo.addItems(items)
+
         self.prefers_combo.currentTextChanged.connect(self.handle_prefer_change)  # Обработчик изменения
 
         # Если учеников меньше двух, отключаем пункт "Нельзя сажать с этим учеником"
         if len(self.students) <= 1:
-            index = self.prefers_combo.findText("Нельзя сажать с этим учеником")
+            index = self.prefers_combo.findText(DoNotSeatWithPrefer().text)
             if index != -1:
                 # noinspection PyUnresolvedReferences
                 self.prefers_combo.setItemData(index, QColor(Qt.gray), Qt.TextColorRole)  # Серый цвет
@@ -85,9 +86,14 @@ class EditStudentDialog(QDialog):
         # Обновляем списки друзей и пожеланий
         self.update_prefers_list()
         self.update_prefers_combo()  # Обновляем состояние выпадающего списка
-
+    def disable_prefer(self, prefer):
+        index = self.prefers_combo.findText(prefer().text)
+        if index != -1:
+            self.prefers_combo.setItemData(index, QColor(Qt.gray), Qt.TextColorRole)
+            self.prefers_combo.model().item(index).setEnabled(False)
     def update_prefers_combo(self):
         """Обновляет состояние выпадающего списка на основе уже выбранных пожеланий."""
+        self.prefers_combo.blockSignals(True)
         for i in range(self.prefers_combo.count()):
             text = self.prefers_combo.itemText(i)
             if text in self.student.prefers:
@@ -101,44 +107,83 @@ class EditStudentDialog(QDialog):
 
         # Если учеников меньше двух, убедимся, что пункт "Нельзя сажать с этим учеником" отключен
         if len(self.students) <= 1:
-            index = self.prefers_combo.findText("Нельзя сажать с этим учеником")
-            if index != -1:
-                self.prefers_combo.setItemData(index, QColor(Qt.gray), Qt.TextColorRole)
-                self.prefers_combo.model().item(index).setEnabled(False)
+            self.disable_prefer(DoNotSeatWithPrefer)
 
+        if SeatNextToMalePrefer in self.student.prefers:
+            self.disable_prefer(SeatNextToFemalePrefer)
+
+        if SeatNextToFemalePrefer in self.student.prefers:
+            self.disable_prefer(SeatNextToMalePrefer)
+
+        if VisionPrefer in self.student.prefers:
+            self.disable_prefer(SeatInBackPrefer)
+            self.disable_prefer(SeatInMiddlePrefer)
+            self.disable_prefer(SeatInFrontPrefer)
+
+        if SeatInBackPrefer in self.student.prefers:
+            self.disable_prefer(VisionPrefer)
+            self.disable_prefer(SeatInMiddlePrefer)
+            self.disable_prefer(SeatInFrontPrefer)
+
+        if SeatInMiddlePrefer in self.student.prefers:
+            self.disable_prefer(VisionPrefer)
+            self.disable_prefer(SeatInBackPrefer)
+            self.disable_prefer(SeatInFrontPrefer)
+
+        if SeatInFrontPrefer in self.student.prefers:
+            self.disable_prefer(VisionPrefer)
+            self.disable_prefer(SeatInBackPrefer)
+            self.disable_prefer(SeatInMiddlePrefer)
+
+        others = []
+        for prefer in self.student.prefers:
+            if isinstance(prefer, DoNotSeatWithPrefer):
+                others.append(prefer.other_student)
+        if len(others) == len(self.student.window.students) - 1:
+            self.disable_prefer(DoNotSeatWithPrefer)
+
+        self.prefers_combo.setCurrentIndex(0)
+        self.prefers_combo.blockSignals(False)
     def handle_prefer_change(self, text):
-        if text == "Нельзя сажать с этим учеником":
-            # Создаем QInputDialog
-            dialog = QInputDialog(self)
-            dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)  # Убираем вопросительный знак
-            dialog.setWindowTitle("Выберите ученика")
-            dialog.setLabelText("Ученик:")
-            dialog.setComboBoxItems([s.name for s in self.students if s != self.student])
-            dialog.setOption(QInputDialog.UseListViewForComboBoxItems)  # Используем список вместо выпадающего меню
-            if dialog.exec_() == QDialog.Accepted:
-                student = dialog.textValue()
-                if student:
-                    prefer = f"Нельзя сажать с {student}"
-                    if prefer not in self.student.prefers:
-                        self.student.prefers.append(prefer)
-                        for _student in self.students:
-                            name = _student.name
-                            if name == student:
-                                _student.prefers.append(f"Нельзя сажать с {self.student.name}")
-                                break
+        if text != "-":
+            prefer = prefers_dict[text]
+            if prefer is DoNotSeatWithPrefer:
+                # Создаем QInputDialog
+                dialog = QInputDialog(self)
+                dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)  # Убираем вопросительный знак
+                dialog.setWindowTitle("Выберите ученика")
+                dialog.setLabelText("Ученик:")
+
+                exclude = [self.student]
+                for prefer in self.student.prefers:
+                    if isinstance(prefer, DoNotSeatWithPrefer):
+                        exclude.append(prefer.other_student)
+
+                dialog.setComboBoxItems([s.name for s in self.students if s not in exclude])
+                dialog.setOption(QInputDialog.UseListViewForComboBoxItems)  # Используем список вместо выпадающего меню
+                if dialog.exec_() == QDialog.Accepted:
+                    student = dialog.textValue()
+                    if student:
+                        other_student = self.parent().get_student_by_name(student)
+
+                        self.student.prefers.append(DoNotSeatWithPrefer, other_student.id)
+                        other_student.prefers.append(DoNotSeatWithPrefer, self.student.id)
+
                         self.update_prefers_list()
                         self.update_prefers_combo()  # Обновляем состояние выпадающего списка
 
     def add_prefer(self):
-        prefer = self.prefers_combo.currentText()
-        if prefer == "Нельзя сажать с этим учеником":
-            # Если выбрано это пожелание, вызываем handle_prefer_change
-            self.handle_prefer_change(prefer)
-        elif prefer and prefer not in self.student.prefers:
-            # Добавляем обычное пожелание
-            self.student.prefers.append(prefer)
-            self.update_prefers_list()
-            self.update_prefers_combo()  # Обновляем состояние выпадающего списка
+        if self.prefers_combo.currentText() != "-":
+            prefer = prefers_dict[self.prefers_combo.currentText()]
+
+            if isinstance(prefer, DoNotSeatWithPrefer):
+                # Если выбрано это пожелание, вызываем handle_prefer_change
+                self.handle_prefer_change(prefer.__str__())
+            elif prefer and prefer not in self.student.prefers:
+                # Добавляем обычное пожелание
+                self.student.prefers.append(prefer)
+                self.update_prefers_list()
+                self.update_prefers_combo()  # Обновляем состояние выпадающего списка
 
     def update_prefers_list(self):
         """Обновляет список пожеланий с кнопками удаления."""
@@ -152,7 +197,7 @@ class EditStudentDialog(QDialog):
             layout = QHBoxLayout(widget)
 
             # Метка с текстом пожелания
-            prefer_label = QLabel(prefer)
+            prefer_label = QLabel(str(prefer))
             layout.addWidget(prefer_label)
 
             # Кнопка "Удалить"
@@ -170,11 +215,11 @@ class EditStudentDialog(QDialog):
         """Удаляет пожелание из списка."""
         if prefer in self.student.prefers:
             self.student.prefers.remove(prefer)
-            if prefer.startswith("Нельзя сажать с "):
-                name = prefer[len("Нельзя сажать с "):]
+            if isinstance(prefer, DoNotSeatWithPrefer):
+                name = prefer.other_student.name
                 for student in self.students:
                     if name == student.name:
-                        student.prefers.remove(f"Нельзя сажать с {self.student.name}")
+                        student.prefers.remove(DoNotSeatWithPrefer)
                         break
             self.update_prefers_list()  # Обновляем список пожеланий
             self.update_prefers_combo()  # Обновляем состояние выпадающего списка
