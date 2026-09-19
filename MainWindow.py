@@ -162,30 +162,24 @@ class MainWindow(QMainWindow):
 
         lstudents = self.students.copy()
 
-        # seats = []
-        #
-        # for column in range(3):
-        #     for row in range(6):
-        #         for seat in range(0, 2):
-        #             seats.append((column, row, seat))
+        # random.shuffle(seats)
+        seated = 0
+        while seated != len(self.students):
 
-        random.shuffle(seats)
-
-        for column, row, seat in seats:
-            if not lstudents:
-                break
-            highest = [0, "-"]
-            if lstudents:
+            for column, row, seat in seats:
+                highest = [0, "-"]
                 for student in lstudents:
-                    st = student.seat(row, column, seat, classroom)
-                    if st >= highest[0]:
-                        highest = [st, student]
+                    score = student.seat(classroom, row, column, seat)
+                    if score >= highest[0]:
+                        highest = [score, student]
+                        continue
                 classroom[column][row][seat] = highest
                 if highest[1] != "-":
                     lstudents.remove(highest[1])
-            else:
-                break
+                    seated += 1
+            print(seated)
 
+        print(classroom,)
         swindow = Classroom(classroom, self, self.rows, self.lines)
         self.hide()
         swindow.show()

@@ -59,7 +59,7 @@ class Student:
     def convert_to_str(self):
         return self.__repr__()
 
-    def seat(self, line, row, _index, classroom) -> int:
+    def seat(self, classroom, line, row, _index, ) -> int:
         score = 0
 
         mate = classroom[row][line][int(not bool(_index))][1]
