@@ -1,3 +1,4 @@
+
 class Prefer:
     def __init__(self, text, student=None):
         self.student = None
@@ -5,8 +6,6 @@ class Prefer:
             self.student = student
 
         self.text = text
-
-
 
     def serialize(self):
         return self.__class__.__name__
@@ -19,6 +18,7 @@ class Prefer:
 
     def delete(self):
         if self.student:
+            # noinspection PyUnresolvedReferences
             self.student.prefers.remove(self)
 
 
@@ -49,6 +49,7 @@ class DoNotSeatWithPrefer(Prefer):
 
     def other_check(self):
         if not self.other_student:
+            # noinspection PyUnresolvedReferences
             self.other_student = self.student.window.get_student(self.other_student_id)
 
 

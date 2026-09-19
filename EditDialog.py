@@ -1,20 +1,23 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QScrollArea, \
     QDialog, QLineEdit, QListWidget, QInputDialog, QHBoxLayout, QListWidgetItem, QCheckBox, \
-     QComboBox, QMessageBox, QStyle
+    QComboBox, QMessageBox, QStyle
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
 from utils import *
 from Prefers import *
 
+
 # TODO
 # 1. Add sex change
+
 class EditStudentDialog(QDialog):
     def __init__(self, student, students, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("Редактировать ученика")
         self.setGeometry(*get_pos(400, 400))
+        # noinspection PyUnresolvedReferences
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.student = student
         self.students = students
@@ -25,8 +28,7 @@ class EditStudentDialog(QDialog):
         self.name_input = QLineEdit(self.student.name, self)
         layout.addWidget(QLabel("Имя:"))
         layout.addWidget(self.name_input)
-        layout.addWidget(QLabel("Друзья:")) # провеит
-
+        layout.addWidget(QLabel("Друзья:"))  # провеит
 
         scroll_area = QScrollArea(self)
         scroll_widget = QWidget()
@@ -62,6 +64,7 @@ class EditStudentDialog(QDialog):
             if index != -1:
                 # noinspection PyUnresolvedReferences
                 self.prefers_combo.setItemData(index, QColor(Qt.gray), Qt.TextColorRole)  # Серый цвет
+                # noinspection PyUnresolvedReferences
                 self.prefers_combo.model().item(index).setEnabled(False)  # Отключаем пункт
 
         layout.addWidget(self.prefers_combo)
@@ -86,23 +89,33 @@ class EditStudentDialog(QDialog):
         # Обновляем списки друзей и пожеланий
         self.update_prefers_list()
         self.update_prefers_combo()  # Обновляем состояние выпадающего списка
+
+    # noinspection PyUnresolvedReferences
     def disable_prefer(self, prefer):
         index = self.prefers_combo.findText(prefer().text)
         if index != -1:
             self.prefers_combo.setItemData(index, QColor(Qt.gray), Qt.TextColorRole)
             self.prefers_combo.model().item(index).setEnabled(False)
+
     def update_prefers_combo(self):
         """Обновляет состояние выпадающего списка на основе уже выбранных пожеланий."""
         self.prefers_combo.blockSignals(True)
+
         for i in range(self.prefers_combo.count()):
             text = self.prefers_combo.itemText(i)
             if text in self.student.prefers:
+                # noinspection PyUnresolvedReferences
                 # Если пожелание уже выбрано, делаем его серым и отключаем
                 self.prefers_combo.setItemData(i, QColor(Qt.gray), Qt.TextColorRole)
+
+                # noinspection PyUnresolvedReferences
                 self.prefers_combo.model().item(i).setEnabled(False)
             else:
+                # noinspection PyUnresolvedReferences
                 # Если пожелание не выбрано, включаем его
                 self.prefers_combo.setItemData(i, QColor(Qt.black), Qt.TextColorRole)
+
+                # noinspection PyUnresolvedReferences
                 self.prefers_combo.model().item(i).setEnabled(True)
 
         # Если учеников меньше двух, убедимся, что пункт "Нельзя сажать с этим учеником" отключен
@@ -144,13 +157,16 @@ class EditStudentDialog(QDialog):
 
         self.prefers_combo.setCurrentIndex(0)
         self.prefers_combo.blockSignals(False)
+
     def handle_prefer_change(self, text):
         if text != "-":
             prefer = prefers_dict[text]
             if prefer is DoNotSeatWithPrefer:
                 # Создаем QInputDialog
                 dialog = QInputDialog(self)
-                dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)  # Убираем вопросительный знак
+                # noinspection PyUnresolvedReferences
+                dialog.setWindowFlags(
+                    dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)  # Убираем вопросительный знак
                 dialog.setWindowTitle("Выберите ученика")
                 dialog.setLabelText("Ученик:")
 
@@ -164,9 +180,11 @@ class EditStudentDialog(QDialog):
                 if dialog.exec_() == QDialog.Accepted:
                     student = dialog.textValue()
                     if student:
+                        # noinspection PyUnresolvedReferences
                         other_student = self.parent().get_student_by_name(student)
-
+                        # noinspection PyUnresolvedReferences
                         self.student.prefers.append(DoNotSeatWithPrefer, other_student.id)
+                        # noinspection PyUnresolvedReferences
                         other_student.prefers.append(DoNotSeatWithPrefer, self.student.id)
 
                         self.update_prefers_list()
@@ -249,6 +267,7 @@ class EditStudentDialog(QDialog):
             msg.setText("Некорректное имя")
 
             # Устанавливаем стандартную иконку Qt
+            # noinspection PyUnresolvedReferences
             msg.setWindowIcon(self.style().standardIcon(QStyle.SP_MessageBoxWarning))
 
             # Показываем сообщение

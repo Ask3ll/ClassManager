@@ -14,6 +14,7 @@ class Classroom(QWidget):
         self.w = window
         self.rows = rows
         self.lines = lines
+        self.desks = []
 
         self.init_ui()
 
@@ -32,21 +33,21 @@ class Classroom(QWidget):
 
         content = QWidget()
 
-        self.grid = QGridLayout(content)
-        self.grid.setHorizontalSpacing(100)
-        self.grid.setVerticalSpacing(15)
+        grid = QGridLayout(content)
+        grid.setHorizontalSpacing(100)
+        grid.setVerticalSpacing(15)
 
         self.desks = []
         for col in range(self.rows):
             for row in range(self.lines):  #
                 desk = Desk(row, col, self)
                 self.desks.append(desk)
-                self.grid.addWidget(desk, row, col)
+                grid.addWidget(desk, row, col)
 
         scroll.setWidget(content)
 
-        self.button = QPushButton("<-- Назад")
-        self.button.setStyleSheet("""
+        button = QPushButton("<-- Назад")
+        button.setStyleSheet("""
             QPushButton {
                 background-color: #f0f0f0;
                 color: black;
@@ -65,9 +66,10 @@ class Classroom(QWidget):
                 background-color: #d0d0d0;
             }
         """)
-        self.button.setFixedSize(60, 20)
-        self.button.clicked.connect(self.back)
-        main_layout.addWidget(self.button)
+        button.setFixedSize(60, 20)
+        button.clicked.connect(self.back)
+
+        main_layout.addWidget(button)
         main_layout.addWidget(scroll)
         self.setLayout(main_layout)
         self.arrange_students()
@@ -93,11 +95,10 @@ class Classroom(QWidget):
             for line in range(self.lines):
                 desk = self.desks[desk_id]
 
-
                 desk.slot1.setText(str(self.classroom[row][line][0][1]))
                 desk.slot2.setText(str(self.classroom[row][line][1][1]))
 
-                desk_id+=1
+                desk_id += 1
 
 
 class Desk(QFrame):
@@ -109,6 +110,9 @@ class Desk(QFrame):
         self.setup_ui()
         self.setAcceptDrops(True)  # Разрешаем перетаскивание на парту
 
+        self.slot1 = None
+        self.slot2 = None
+
     def setup_ui(self):
         self.setFrameStyle(QFrame.Box | QFrame.Raised)
         self.setLineWidth(2)
@@ -118,16 +122,16 @@ class Desk(QFrame):
         layout.setSpacing(5)
         layout.setContentsMargins(50, 5, 50, 5)
 
-        self.title = QLabel(f"Ряд {self.col + 1}\nПарта {self.row + 1}")
+        title = QLabel(f"Ряд {self.col + 1}\nПарта {self.row + 1}")
         # noinspection PyUnresolvedReferences
-        self.title.setAlignment(Qt.AlignCenter)
+        title.setAlignment(Qt.AlignCenter)
 
         self.slot1 = StudentLabel(rparent=self)
         self.slot1.slot_index = 0
         self.slot2 = StudentLabel(rparent=self)
         self.slot2.slot_index = 1
 
-        layout.addWidget(self.title)
+        layout.addWidget(title)
         layout.addWidget(self.slot1)
         layout.addWidget(self.slot2)
         self.setLayout(layout)
@@ -188,9 +192,9 @@ class Desk(QFrame):
 
 
 class StudentLabel(QLabel):
-    def __init__(self, text="", rparent: Desk | None = None):
+    def __init__(self, rparent: Desk, text=""):
         super().__init__(text, rparent)
-        self.rparent = rparent
+        self.rparent: Desk = rparent
         # noinspection PyUnresolvedReferences
         self.setAlignment(Qt.AlignCenter)
         self.setStyleSheet("""

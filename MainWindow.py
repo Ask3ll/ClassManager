@@ -1,5 +1,4 @@
 import os
-import random
 import winsound
 from PyQt5.QtWidgets import QMainWindow, QRadioButton, QButtonGroup
 from pathlib import Path
@@ -108,7 +107,6 @@ class MainWindow(QMainWindow):
 
         save_dir = Path(os.path.expandvars(r"%appdata%\ClassManager"))
 
-
         save_dir.mkdir(parents=True, exist_ok=True)
 
         studs_file_path = save_dir / "classman_save.jsonl"
@@ -126,7 +124,7 @@ class MainWindow(QMainWindow):
         save_dir = Path(os.path.expandvars(r"%appdata%\ClassManager"))
         save_dir.mkdir(parents=True, exist_ok=True)
         # classman_save_*.jsonl
-
+        settings_file = None
         for file in save_dir.glob("classman_settings.ini"):
             settings_file = file
             self.new_stud_id = int(file.read_text(encoding="utf-8"))
@@ -134,15 +132,17 @@ class MainWindow(QMainWindow):
         for file in save_dir.glob("classman_save.jsonl"):
             for line in file.read_text(encoding="utf-8").split("\n"):
                 if line.strip():
+                    # noinspection PyBroadException
                     try:
                         data = json.loads(line)
 
                         self.students.append(Student(self, **data))
-                    except Exception as e:
+                    except Exception:
                         self.new_stud_id = 0
                         self.students.clear()
                         file.unlink(missing_ok=True)
-                        settings_file.unlink(missing_ok=True)
+                        if settings_file:
+                            settings_file.unlink(missing_ok=True)
                         return
             self.update_student_list()
             break
@@ -179,7 +179,7 @@ class MainWindow(QMainWindow):
                     seated += 1
             print(seated)
 
-        print(classroom,)
+        print(classroom, )
         swindow = Classroom(classroom, self, self.rows, self.lines)
         self.hide()
         swindow.show()
@@ -210,6 +210,7 @@ class MainWindow(QMainWindow):
             self.new_stud_id = 0
 
         scroll_bar = self.student_list.verticalScrollBar()
+        # noinspection PyUnresolvedReferences
         scroll_position = scroll_bar.value()
 
         self.student_list.clear()
@@ -240,6 +241,7 @@ class MainWindow(QMainWindow):
 
             # Устанавливаем высоту элемента списка
             item.setSizeHint(widget.sizeHint())
+        # noinspection PyUnresolvedReferences
         scroll_bar.setValue(scroll_position)
 
     def edit_student(self, student):
