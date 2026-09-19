@@ -177,9 +177,6 @@ class MainWindow(QMainWindow):
                 if highest[1] != "-":
                     lstudents.remove(highest[1])
                     seated += 1
-            print(seated)
-
-        print(classroom, )
         swindow = Classroom(classroom, self, self.rows, self.lines)
         self.hide()
         swindow.show()
