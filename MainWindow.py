@@ -269,6 +269,6 @@ class MainWindow(QMainWindow):
             for prefer in _student.prefers:
                 if isinstance(prefer, DoNotSeatWithPrefer):
                     if prefer.other_student == self:
-                        _student.prefers.remove(prefer)
+                        _student.prefers.remove(prefer, student.id)
         self.students.remove(student)
         self.update_student_list()

@@ -213,9 +213,16 @@ class PrefersList(list):
             super().append(item(self.student, arg))
         else:
             super().append(item(self.student))
-    def remove(self, item):
-        if super().__contains__(item):
+    def remove(self, item, arg=None):
+        if arg is not None:
+            for indx, prefer in enumerate(self):
+                if isinstance(prefer, item):
+                    if prefer.other_student_id == arg:
+                        self.pop(indx)
+                        break
+        elif super().__contains__(item):
             super().remove(item)
+
         elif isinstance(item, str):
             for indx, prefer in enumerate(self):
                 if prefer.text == item:

@@ -214,13 +214,15 @@ class EditStudentDialog(QDialog):
     def delete_prefer(self, prefer):
         """Удаляет пожелание из списка."""
         if prefer in self.student.prefers:
-            self.student.prefers.remove(prefer)
             if isinstance(prefer, DoNotSeatWithPrefer):
+                self.student.prefers.remove(DoNotSeatWithPrefer, prefer.other_student_id)
                 name = prefer.other_student.name
                 for student in self.students:
                     if name == student.name:
-                        student.prefers.remove(DoNotSeatWithPrefer)
+                        student.prefers.remove(DoNotSeatWithPrefer, self.student.id)
                         break
+            else:
+                self.student.prefers.remove(prefer)
             self.update_prefers_list()  # Обновляем список пожеланий
             self.update_prefers_combo()  # Обновляем состояние выпадающего списка
 
