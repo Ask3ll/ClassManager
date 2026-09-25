@@ -5,7 +5,44 @@
 """
 
 
-from PyQt5.QtWidgets import QScroller
+from PyQt5.QtCore import QObject, QEvent, QPropertyAnimation, QEasingCurve
+from PyQt5.QtWidgets import QAbstractItemView
+
+
+class SmoothScroolFilter(QObject):
+    """анимирует прокрутку колеса вместо резкого перехода между позициями."""
+
+    def __init__(self, scroll_widget, duration=110):
+        super().__init__(scroll_widget)
+        self.scroll_widget = scroll_widget
+        self.duration = duration
+        self.animation = None
+
+    def eventFilter(self, watched, event):
+        if event.type() != QEvent.Wheel:
+            return super().eventFilter(watched, event)
+
+        bar = self.scroll_widget.verticalScrollBar()
+        delta = event.angleDelta().y() or event.pixelDelta().y()
+        if not delta:
+            return False
+
+        # Один импульс колеса не должен перескакивать через весь список.
+        step = max(-60, min(60, int(delta * 0.35)))
+        base_value = bar.value()
+        if self.animation is not None and self.animation.state() == QPropertyAnimation.Running:
+            base_value = self.animation.endValue()
+            self.animation.stop()
+        target = max(bar.minimum(), min(bar.maximum(), int(base_value) - step))
+
+        self.animation = QPropertyAnimation(bar, b"value", self)
+        self.animation.setDuration(self.duration)
+        self.animation.setStartValue(bar.value())
+        self.animation.setEndValue(target)
+        self.animation.setEasingCurve(QEasingCurve.OutCubic)
+        self.animation.start()
+        event.accept()
+        return True
 
 
 def _set(widget, stylesheet):
@@ -128,11 +165,16 @@ def scroll_bar(widget):
 
 
 # EditDialog.py: список доступных предпочтений.
-def smooth_scroll(widget):
+def smooth_scroll(widget, duration=110):
     """Включает плавную кинетическую прокрутку для списка или области прокрутки."""
+    if isinstance(widget, QAbstractItemView):
+        widget.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        widget.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
     for bar in (widget.verticalScrollBar(), widget.horizontalScrollBar()):
         bar.setSingleStep(1)
-    QScroller.grabGesture(widget.viewport(), QScroller.LeftMouseButtonGesture)
+    wheel_filter = SmoothScroolFilter(widget, duration)
+    widget.viewport().installEventFilter(wheel_filter)
+    widget.setProperty("smooth_wheel_filter", wheel_filter)
 
 
 def preferences_combo(widget):

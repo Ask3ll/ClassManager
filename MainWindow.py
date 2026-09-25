@@ -62,6 +62,7 @@ class MainWindow(QMainWindow):
         self.male_radio = QRadioButton("Мальчик", self)
         self.male_radio.setChecked(True)
         radio_button(self.male_radio)
+
         self.female_radio = QRadioButton("Девочка", self)
         self.sex_group = QButtonGroup(self)
         self.sex_group.addButton(self.male_radio)
@@ -69,6 +70,7 @@ class MainWindow(QMainWindow):
         radio_button(self.female_radio)
         self.sex_layout.addWidget(self.male_radio)
         self.sex_layout.addWidget(self.female_radio)
+
         self.layout.addLayout(self.input_layout)
 
         self.mix_layout = QHBoxLayout()
@@ -82,7 +84,7 @@ class MainWindow(QMainWindow):
         self.student_list = QListWidget(self)
         student_list(self.student_list)
         scroll_bar(self.student_list.verticalScrollBar())
-        smooth_scroll(self.student_list)
+        smooth_scroll(self.student_list, duration=180)
         self.layout.addWidget(self.student_list)
 
         self.start_button = QPushButton("Рассадить учеников", self)

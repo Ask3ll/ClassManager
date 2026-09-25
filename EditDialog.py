@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QScrollArea, \
     QDialog, QLineEdit, QListWidget, QInputDialog, QHBoxLayout, QListWidgetItem, QCheckBox, \
-    QComboBox, QMessageBox, QStyle
+    QComboBox, QMessageBox, QStyle, QRadioButton, QButtonGroup
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
+
 
 from utils import *
 from Prefers import *
@@ -11,7 +12,7 @@ from styles import (
     input_dialog, message_box, preference_label, preference_row,
     preferences_combo, preferences_list, scroll_bar, smooth_scroll, scroll_content, section_label,
     delete_button as style_delete_button,
-    scroll_area as style_scroll_area,
+    scroll_area as style_scroll_area, radio_button
 )
 
 
@@ -37,6 +38,29 @@ class EditStudentDialog(QDialog):
         dialog_name_input(self.name_input)
         layout.addWidget(QLabel("Имя:"))
         layout.addWidget(self.name_input)
+
+        # радиокнопки для выбора пола
+        self.sex_layout = QHBoxLayout()
+        # noinspection PyUnresolvedReferences
+        self.sex_layout.setAlignment(Qt.AlignLeft)
+        self.male_radio = QRadioButton("Мальчик", self)
+        self.female_radio = QRadioButton("Девочка", self)
+        if student.sex == "Мальчик":
+            self.male_radio.setChecked(True)
+        else:
+            self.female_radio.setChecked(True)
+        radio_button(self.male_radio)
+
+
+        self.sex_group = QButtonGroup(self)
+        self.sex_group.addButton(self.male_radio)
+        self.sex_group.addButton(self.female_radio)
+        radio_button(self.female_radio)
+        self.sex_layout.addWidget(self.male_radio)
+        self.sex_layout.addWidget(self.female_radio)
+
+        layout.addLayout(self.sex_layout)
+
         layout.addWidget(QLabel("Друзья:"))  # провеит
 
         scroll_area = QScrollArea(self)
@@ -203,6 +227,9 @@ class EditStudentDialog(QDialog):
                         exclude.append(prefer.other_student)
 
                 dialog.setComboBoxItems([s.name for s in self.students if s not in exclude])
+                combo_box = dialog.findChild(QComboBox)
+                if combo_box:
+                    smooth_scroll(combo_box.view(), duration=180)
                 dialog.setOption(QInputDialog.UseListViewForComboBoxItems)  # Используем список вместо выпадающего меню
                 if dialog.exec_() == QDialog.Accepted:
                     student = dialog.textValue()
@@ -289,6 +316,10 @@ class EditStudentDialog(QDialog):
         if (self.name_input.text() != "" and self.name_input.text() not in list(
                 map(str, self.students))) or self.name_input.text() == self.student.name:
             self.student.name = self.name_input.text()
+            if self.male_radio.isChecked():
+                self.student.sex = "Мальчик"
+            else:
+                self.student.sex = "Девочка"
             self.accept()
         else:
             msg = QMessageBox(self)
