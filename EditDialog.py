@@ -6,6 +6,13 @@ from PyQt5.QtGui import QColor
 
 from utils import *
 from Prefers import *
+from styles import (
+    action_button, dialog_name_input, edit_dialog, friend_checkbox,
+    input_dialog, message_box, preference_label, preference_row,
+    preferences_combo, preferences_list, scroll_bar, smooth_scroll, scroll_content, section_label,
+    delete_button as style_delete_button,
+    scroll_area as style_scroll_area,
+)
 
 
 # TODO
@@ -14,9 +21,10 @@ from Prefers import *
 class EditStudentDialog(QDialog):
     def __init__(self, student, students, parent=None):
         super().__init__(parent)
+        edit_dialog(self)
 
         self.setWindowTitle("Редактировать ученика")
-        self.setGeometry(*get_pos(400, 400))
+        self.setGeometry(*get_pos(400, 600))
         # noinspection PyUnresolvedReferences
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.student = student
@@ -26,12 +34,18 @@ class EditStudentDialog(QDialog):
 
         # Поле для редактирования имени
         self.name_input = QLineEdit(self.student.name, self)
+        dialog_name_input(self.name_input)
         layout.addWidget(QLabel("Имя:"))
         layout.addWidget(self.name_input)
         layout.addWidget(QLabel("Друзья:"))  # провеит
 
         scroll_area = QScrollArea(self)
+        style_scroll_area(scroll_area)
+        scroll_bar(scroll_area.verticalScrollBar())
+        scroll_bar(scroll_area.horizontalScrollBar())
+        smooth_scroll(scroll_area)
         scroll_widget = QWidget()
+        scroll_content(scroll_widget)
         self.friends_layout = QVBoxLayout(scroll_widget)
         # noinspection PyUnresolvedReferences
         self.friends_layout.setAlignment(Qt.AlignTop)
@@ -40,6 +54,7 @@ class EditStudentDialog(QDialog):
         for other_student in self.students:
             if other_student != self.student:  # Исключаем текущего ученика
                 checkbox = QCheckBox(other_student.name, self)
+                friend_checkbox(checkbox)
                 checkbox.setChecked(other_student in self.student.friends)
                 self.friend_checkboxes.append((checkbox, other_student))
                 self.friends_layout.addWidget(checkbox)
@@ -51,6 +66,7 @@ class EditStudentDialog(QDialog):
         # Выпадающий список для пожеланий
         layout.addWidget(QLabel("Пожелания:"))
         self.prefers_combo = QComboBox(self)
+        preferences_combo(self.prefers_combo)
 
         items = list(map(str, all_prefers))
         items.insert(0, "-")
@@ -72,10 +88,14 @@ class EditStudentDialog(QDialog):
         # Кнопка "Добавить пожелание"
         self.add_prefer_button = QPushButton("Добавить пожелание", self)
         self.add_prefer_button.clicked.connect(self.add_prefer)
+        action_button(self.add_prefer_button)
         layout.addWidget(self.add_prefer_button)
 
         # Список текущих пожеланий
         self.prefers_list = QListWidget(self)
+        preferences_list(self.prefers_list)
+        scroll_bar(self.prefers_list.verticalScrollBar())
+        smooth_scroll(self.prefers_list)
         layout.addWidget(QLabel("Текущие пожелания:"))
         layout.addWidget(self.prefers_list)
 
@@ -83,12 +103,16 @@ class EditStudentDialog(QDialog):
         buttons_layout = QHBoxLayout()
         save_button = QPushButton("Сохранить", self)
         save_button.clicked.connect(self.save_changes)
+        action_button(save_button)
         buttons_layout.addWidget(save_button)
         layout.addLayout(buttons_layout)
 
         # Обновляем списки друзей и пожеланий
         self.update_prefers_list()
         self.update_prefers_combo()  # Обновляем состояние выпадающего списка
+
+        for label in self.findChildren(QLabel):
+            section_label(label)
 
     # noinspection PyUnresolvedReferences
     def disable_prefer(self, prefer):
@@ -164,6 +188,9 @@ class EditStudentDialog(QDialog):
             if prefer is DoNotSeatWithPrefer:
                 # Создаем QInputDialog
                 dialog = QInputDialog(self)
+                input_dialog(dialog)
+                dialog.setOkButtonText("Выбрать")
+                dialog.setCancelButtonText("Отмена")
                 # noinspection PyUnresolvedReferences
                 dialog.setWindowFlags(
                     dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)  # Убираем вопросительный знак
@@ -212,15 +239,18 @@ class EditStudentDialog(QDialog):
 
             # Создаем виджет для отображения пожелания и кнопки удаления
             widget = QWidget()
+            preference_row(widget)
             layout = QHBoxLayout(widget)
 
             # Метка с текстом пожелания
             prefer_label = QLabel(str(prefer))
+            preference_label(prefer_label)
             layout.addWidget(prefer_label)
 
             # Кнопка "Удалить"
             delete_button = QPushButton("Удалить", self)
             delete_button.clicked.connect(lambda _, p=prefer: self.delete_prefer(p))
+            style_delete_button(delete_button)
             layout.addWidget(delete_button)
 
             # Устанавливаем виджет для элемента списка
@@ -262,6 +292,7 @@ class EditStudentDialog(QDialog):
             self.accept()
         else:
             msg = QMessageBox(self)
+            message_box(msg)
             msg.setIcon(QMessageBox.Critical)  # Стандартная иконка "Critical"
             msg.setWindowTitle("Имя не сохранено")
             msg.setText("Некорректное имя")

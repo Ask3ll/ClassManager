@@ -5,11 +5,16 @@ from PyQt5.QtCore import Qt, QMimeData
 from PyQt5.QtGui import QDrag
 
 from utils import *
+from styles import (
+    back_button, classroom_content, classroom_scroll, classroom_window,
+    desk as style_desk, desk_title, scroll_bar, smooth_scroll, student_slot,
+)
 
 
 class Classroom(QWidget):
     def __init__(self, classroom, window, rows, lines):
         super().__init__()
+        classroom_window(self)
         self.classroom = classroom
         self.w = window
         self.rows = rows
@@ -27,11 +32,16 @@ class Classroom(QWidget):
 
         # Создаем 3 вертикальных ряда по 6 парт
         scroll = QScrollArea()
+        classroom_scroll(scroll)
+        scroll_bar(scroll.verticalScrollBar())
+        scroll_bar(scroll.horizontalScrollBar())
+        smooth_scroll(scroll)
 
         # noinspection PyUnresolvedReferences
         scroll.setAlignment(Qt.AlignCenter)
 
         content = QWidget()
+        classroom_content(content)
 
         grid = QGridLayout(content)
         grid.setHorizontalSpacing(100)
@@ -67,6 +77,7 @@ class Classroom(QWidget):
             }
         """)
         button.setFixedSize(60, 20)
+        back_button(button)
         button.clicked.connect(self.back)
 
         main_layout.addWidget(button)
@@ -104,6 +115,7 @@ class Classroom(QWidget):
 class Desk(QFrame):
     def __init__(self, row, col, classroom):
         super().__init__()
+        style_desk(self)
         self.slot1 = None
         self.slot2 = None
 
@@ -119,6 +131,7 @@ class Desk(QFrame):
         self.setFrameStyle(QFrame.Box | QFrame.Raised)
         self.setLineWidth(2)
         self.setStyleSheet("background-color: #f0f0f0;")
+        style_desk(self)
 
         layout = QVBoxLayout()
         layout.setSpacing(5)
@@ -127,6 +140,7 @@ class Desk(QFrame):
         title = QLabel(f"Ряд {self.col + 1}\nПарта {self.row + 1}")
         # noinspection PyUnresolvedReferences
         title.setAlignment(Qt.AlignCenter)
+        desk_title(title)
 
         self.slot1 = StudentLabel(rparent=self)
         self.slot1.slot_index = 0
@@ -199,6 +213,7 @@ class StudentLabel(QLabel):
         self.rparent: Desk = rparent
         # noinspection PyUnresolvedReferences
         self.setAlignment(Qt.AlignCenter)
+        student_slot(self)
         self.setStyleSheet("""
             QLabel {
                 border: 1px solid gray;
@@ -208,6 +223,7 @@ class StudentLabel(QLabel):
             }
         """)
         self.setMinimumSize(80, 30)
+        student_slot(self)
         self.setAcceptDrops(True)  # Разрешаем перетаскивание на лейбл
 
     def mousePressEvent(self, event):

@@ -6,20 +6,26 @@ from pathlib import Path
 from ClassroomUI import *
 from EditDialog import *
 from Student import *
+from styles import (
+    action_button, central_widget, counter_label, list_row, main_window,
+    name_input, radio_button, scroll_bar, smooth_scroll, student_list, student_name_label,
+    delete_button as style_delete_button,
+)
 
 
 # TODO
 # 1. Отображение у кого есть prefers а у кого есть
 
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        main_window(self)
         self.setWindowTitle("Управление учениками")
         self.setGeometry(*get_pos(900, 900))
 
         self.central_widget = QWidget()
+        central_widget(self.central_widget)
         self.setCentralWidget(self.central_widget)
 
         self.layout = QVBoxLayout(self.central_widget)
@@ -27,14 +33,17 @@ class MainWindow(QMainWindow):
         # горизонтальный layout для поля ввода и кнопки
         self.input_layout = QHBoxLayout()
         self.qle = QLineEdit(self)
+        name_input(self.qle)
         self.qle.setPlaceholderText("Фамилия Имя")
         self.add_button = QPushButton("Добавить ученика", self)
         self.add_button.clicked.connect(self.add_student)
+        action_button(self.add_button)
         self.input_layout.addWidget(self.qle)
         self.input_layout.addWidget(self.add_button)
 
         self.save_button = QPushButton("Сохранить", self)
         self.save_button.clicked.connect(self.save)
+        action_button(self.save_button)
         self.input_layout.addWidget(self.save_button)
 
         # students counter
@@ -42,6 +51,7 @@ class MainWindow(QMainWindow):
         # noinspection PyUnresolvedReferences
         self.counter_layout.setAlignment(Qt.AlignLeft)
         self.text_counter = QLabel(self)
+        counter_label(self.text_counter)
         self.text_counter.setText("Пустой класс")
         self.counter_layout.addWidget(self.text_counter)
 
@@ -51,10 +61,12 @@ class MainWindow(QMainWindow):
         self.sex_layout.setAlignment(Qt.AlignRight)
         self.male_radio = QRadioButton("Мальчик", self)
         self.male_radio.setChecked(True)
+        radio_button(self.male_radio)
         self.female_radio = QRadioButton("Девочка", self)
         self.sex_group = QButtonGroup(self)
         self.sex_group.addButton(self.male_radio)
         self.sex_group.addButton(self.female_radio)
+        radio_button(self.female_radio)
         self.sex_layout.addWidget(self.male_radio)
         self.sex_layout.addWidget(self.female_radio)
         self.layout.addLayout(self.input_layout)
@@ -68,10 +80,14 @@ class MainWindow(QMainWindow):
         # self.layout.addLayout(self.counter_layout)
 
         self.student_list = QListWidget(self)
+        student_list(self.student_list)
+        scroll_bar(self.student_list.verticalScrollBar())
+        smooth_scroll(self.student_list)
         self.layout.addWidget(self.student_list)
 
         self.start_button = QPushButton("Рассадить учеников", self)
         self.start_button.clicked.connect(self._sort)
+        action_button(self.start_button)
         self.layout.addWidget(self.start_button)
 
         self.students = []
@@ -182,7 +198,8 @@ class MainWindow(QMainWindow):
         swindow.show()
 
     def add_student(self):
-        if self.qle.text() != "" and self.qle.text() not in list(map(str, self.students)) and set(
+        if self.qle.text() != "" and self.qle.text().lower() not in list(
+                map(lambda std: str(std).lower(), self.students)) and set(
                 self.qle.text().lower()) <= set(rus + " "):
             sex = "Мальчик" if self.male_radio.isChecked() else "Девочка"
             student = Student(self, self.qle.text(), sex)
@@ -217,20 +234,24 @@ class MainWindow(QMainWindow):
             self.student_list.addItem(item)
             # Создаем виджет для отображения имени и кнопок
             widget = QWidget()
+            list_row(widget)
             layout = QHBoxLayout(widget)
 
             # Метка с именем ученика
             name_label = QLabel(f"{student.name} ({student.sex})")
+            student_name_label(name_label)
             layout.addWidget(name_label)
 
             # Кнопка "Редактировать"
             edit_button = QPushButton("Редактировать")
             edit_button.clicked.connect(lambda _, s=student: self.edit_student(s))
+            action_button(edit_button)
             layout.addWidget(edit_button)
 
             # Кнопка "Удалить"
             delete_button = QPushButton("Удалить")
             delete_button.clicked.connect(lambda _, s=student: self.delete_student(s))
+            style_delete_button(delete_button)
             layout.addWidget(delete_button)
 
             # Устанавливаем виджет для элемента списка

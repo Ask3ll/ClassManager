@@ -1,5 +1,3 @@
-import json
-
 from Prefers import *
 
 
@@ -63,11 +61,11 @@ class Student:
 
     def seat(self, classroom, line, row, _index, ) -> int:
         score = 0
-        if ((SeatInBackPrefer not in self.prefers) and (SeatInMiddlePrefer not in self.prefers)) and line in [0, 1, 2]:
-            to_add = 3 - line
-            if to_add > 0:
-                print(to_add*10, 123)
-                score += to_add*100
+        # if ((SeatInBackPrefer not in self.prefers) and (SeatInMiddlePrefer not in self.prefers)) and line in [0, 1, 2]:
+        #     to_add = 3 - line
+        #     if to_add > 0:
+        #         print(to_add*10, 123)
+        #         score += to_add*100
 
         mate = classroom[row][line][int(not bool(_index))][1]
         friends = self.friends.copy()
@@ -184,66 +182,3 @@ class Student:
 
         return score
 
-
-class PrefersList(list):
-    def __init__(self, student, from_json=None):
-        super().__init__()
-        self.student: Student = student
-
-        if from_json:
-            lst = json.loads(from_json)
-            for prefer in lst:
-                if isinstance(prefer, list):
-                    _prefer, _id = prefer
-
-                    self.append(eval(_prefer), int(_id))
-                else:
-                    self.append(eval(prefer))
-
-    def __repr__(self):
-        return json.dumps(list(map(lambda prefer: prefer.serialize(), self)), ensure_ascii=True)
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __contains__(self, item):
-        # 1. если ищем сам объект предпочтения
-        if super().__contains__(item):
-            return True
-
-        # 2. если item — это строка
-        if isinstance(item, str):
-            return any(prefer.text == item for prefer in self)
-
-        # 3. если item — это класс
-        if isinstance(item, type):
-            return any(isinstance(prefer, item) for prefer in self)
-
-        return False
-
-    def append(self, item, arg=None):
-        if arg is not None:
-            super().append(item(self.student, arg))
-        else:
-            super().append(item(self.student))
-
-    def remove(self, item, arg=None):
-        if arg is not None:
-            for indx, prefer in enumerate(self):
-                if isinstance(prefer, item):
-                    if prefer.other_student_id == arg:
-                        self.pop(indx)
-                        break
-        elif super().__contains__(item):
-            super().remove(item)
-
-        elif isinstance(item, str):
-            for indx, prefer in enumerate(self):
-                if prefer.text == item:
-                    self.pop(indx)
-                    break
-        elif isinstance(item, type):
-            for indx, prefer in enumerate(self):
-                if isinstance(prefer, item):
-                    self.pop(indx)
-                    break
