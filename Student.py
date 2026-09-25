@@ -16,8 +16,8 @@ class Student:
         self.name = name
         self.id = _id
         self.sex = sex
-        self._friends = friends  # Список друзей (объектов Student)
-        self.prefers = prefers  # Список пожеланий (PrefersList)
+        self._friends = friends  # cписок друзей (объектов Student)
+        self.prefers = prefers  # cписок пожеланий (PrefersList)
         self.window = _window
 
         if prefers is None:

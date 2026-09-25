@@ -22,8 +22,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         main_window(self)
         self.setWindowTitle("Управление учениками")
+        icon = self.style().standardIcon(QStyle.SP_DirHomeIcon)
+        self.setWindowIcon(icon)
         self.setGeometry(*get_pos(900, 900))
-
         self.central_widget = QWidget()
         central_widget(self.central_widget)
         self.setCentralWidget(self.central_widget)
@@ -40,7 +41,6 @@ class MainWindow(QMainWindow):
         action_button(self.add_button)
         self.input_layout.addWidget(self.qle)
         self.input_layout.addWidget(self.add_button)
-
         self.save_button = QPushButton("Сохранить", self)
         self.save_button.clicked.connect(self.save)
         action_button(self.save_button)
@@ -102,7 +102,6 @@ class MainWindow(QMainWindow):
 
     def updateCounter(self):
         n = len(self.students)
-
         n100 = n % 100
         n10 = n % 10
         if n == 0:

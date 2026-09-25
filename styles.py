@@ -6,7 +6,7 @@
 
 
 from PyQt5.QtCore import QObject, QEvent, QPropertyAnimation, QEasingCurve
-from PyQt5.QtWidgets import QAbstractItemView
+from PyQt5.QtWidgets import QAbstractItemView, QListView
 
 
 class SmoothScroolFilter(QObject):
@@ -43,6 +43,40 @@ class SmoothScroolFilter(QObject):
         self.animation.start()
         event.accept()
         return True
+
+
+class SmoothListView(QListView):
+    """QListView с плавной прокруткой, не зависящей от eventFilter."""
+
+    def __init__(self, parent=None, duration=110):
+        super().__init__(parent)
+        self._smooth_duration = duration
+        self._smooth_animation = None
+        self.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+
+    def wheelEvent(self, event):
+        delta = event.angleDelta().y() or event.pixelDelta().y()
+        if not delta:
+            return super().wheelEvent(event)
+
+        bar = self.verticalScrollBar()
+        step = max(-60, min(60, int(delta * 0.35)))
+        base_value = bar.value()
+        if (self._smooth_animation is not None
+                and self._smooth_animation.state() == QPropertyAnimation.Running):
+            base_value = self._smooth_animation.endValue()
+            self._smooth_animation.stop()
+
+        target = max(bar.minimum(), min(bar.maximum(), int(base_value) - step))
+        if target != bar.value():
+            self._smooth_animation = QPropertyAnimation(bar, b"value", self)
+            self._smooth_animation.setDuration(self._smooth_duration)
+            self._smooth_animation.setStartValue(bar.value())
+            self._smooth_animation.setEndValue(target)
+            self._smooth_animation.setEasingCurve(QEasingCurve.OutCubic)
+            self._smooth_animation.start()
+
+        event.accept()
 
 
 def _set(widget, stylesheet):
@@ -173,6 +207,9 @@ def smooth_scroll(widget, duration=110):
     for bar in (widget.verticalScrollBar(), widget.horizontalScrollBar()):
         bar.setSingleStep(1)
     wheel_filter = SmoothScroolFilter(widget, duration)
+    # У QAbstractScrollArea колесо может приходить либо в сам view,
+    # либо непосредственно в его viewport (особенно у popup QComboBox).
+    widget.installEventFilter(wheel_filter)
     widget.viewport().installEventFilter(wheel_filter)
     widget.setProperty("smooth_wheel_filter", wheel_filter)
 
@@ -220,8 +257,8 @@ def delete_button(widget):
         widget,
         """
         QPushButton {
-            background-color: transparent;
-            border: 1px solid transparent;
+            background-color: #fee2e2;
+            border: 1px solid #f87171;
             border-radius: 6px;
 
             /* Фиксированный компактный размер 30x30 пикселей */
@@ -234,7 +271,7 @@ def delete_button(widget):
 
         /* Эффект при наведении курсора: зажигается нежно-красный фон и рамка */
         QPushButton:hover {
-            background-color: #fee2e2;
+            background-color: #f7abab;
             border: 1px solid #f87171;
         }
 
