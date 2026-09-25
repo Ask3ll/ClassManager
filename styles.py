@@ -223,48 +223,142 @@ def message_box(widget):
     """Сообщение об ошибке, показываемое при попытке сохранить некорректное имя."""
     _set(widget, "QMessageBox { background: #f7f8fa; } QMessageBox QLabel { color: #30343b; }")
 
+    # ClassroomUI.py: окно рассадки, прокрутка и её содержимое.
 
-# ClassroomUI.py: окно рассадки, прокрутка и её содержимое.
+
 def classroom_window(widget):
     """Окно ClassroomUI.py с итоговой схемой рассадки учеников."""
-    _set(widget, "QWidget { background: #f7f8fa; }")
+    _set(widget, "QWidget { background-color: #f1f5f9; }")
 
 
 def classroom_scroll(widget):
     """Прокручиваемая область, содержащая сетку парт в окне рассадки."""
-    _set(widget, "QScrollArea { border: 0; background: #f7f8fa; }")
+    _set(widget, """
+           QScrollArea { border: none; background: transparent; }
+           QScrollBar:vertical {
+               border: none;
+               background: #e2e8f0;
+               width: 8px;
+               border-radius: 4px;
+           }
+           QScrollBar::handle:vertical {
+               background: #cbd5e1;
+               border-radius: 4px;
+           }
+           QScrollBar::handle:vertical:hover {
+               background: #94a3b8;
+           }
+       """)
+
+
+# ClassroomUI.py: окно рассадки, прокрутка и её содержимое.
+def classroom_window(widget):
+    """Окно ClassroomUI.py с итоговой схемой рассадки учеников."""
+    _set(widget, "QWidget { background-color: #f1f5f9; }")
+
+
+def classroom_scroll(widget):
+    """Прокручиваемая область, содержащая сетку парт в окне рассадки."""
+    _set(widget, """
+        QScrollArea { border: none; background: transparent; }
+        QScrollBar:vertical {
+            border: none;
+            background: #e2e8f0;
+            width: 8px;
+            border-radius: 4px;
+        }
+        QScrollBar::handle:vertical {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: #94a3b8;
+        }
+        QScrollBar:horizontal {
+            height: 0px; /* Отключаем горизонтальный скроллбар */
+        }
+    """)
+    # Включаем подгонку содержимого под ширину окна
+    widget.setWidgetResizable(True)
 
 
 def classroom_content(widget):
     """Внутренний виджет сетки парт с единым фоном окна рассадки."""
-    _set(widget, "QWidget { background: #f7f8fa; }")
+    _set(widget, "QWidget { background: transparent; }")
 
 
 # ClassroomUI.py: кнопка возврата из окна рассадки.
 def back_button(widget):
-    """Маленькая кнопка возврата из окна рассадки в главное окно."""
+    """Кнопка возврата с оптимальным размером."""
     _set(widget, """
-        QPushButton { background: transparent; color: #111111; border: 1px solid #111111; border-radius: 2px; padding: 2px 4px; font-size: 10px; min-width: 20px; min-height: 20px; }
-        QPushButton:hover { background: #eeeeee; }
-        QPushButton:pressed { background: #d8d8d8; }
+        QPushButton {
+            background-color: #ffffff;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 60px;
+            min-height: 22px;
+        }
+        QPushButton:hover {
+            background-color: #f8fafc;
+            color: #0f172a;
+            border-color: #94a3b8;
+        }
+        QPushButton:pressed {
+            background-color: #e2e8f0;
+        }
     """)
 
 
 # ClassroomUI.py: рамка одной парты и заголовок с номером ряда/парты.
 def desk(widget):
-    """Рамка одной парты в сетке окна ClassroomUI.py."""
-    _set(widget, "QFrame { background: #f0f0f0; }")
+    """Компактная рамка парты."""
+    _set(widget, """
+        QFrame {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 2px;
+        }
+    """)
 
 
 def desk_title(widget):
     """Заголовок парты с номером ряда и номером парты."""
-    _set(widget, "QLabel { color: #30343b; font-weight: bold; }")
+    _set(widget, """
+        QLabel {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            padding-bottom: 1px;
+        }
+    """)
 
 
 # ClassroomUI.py: подпись ученика на месте за партой (drag-and-drop).
 def student_slot(widget):
-    """Место ученика на парте с рамкой и подсветкой при наведении."""
+    """Компактное место ученика, отлично вмещающееся в 3 колонки."""
     _set(widget, """
-        QLabel { border: 1px solid gray; border-radius: 2px; padding: 5px; margin: 2px; background: white; color: #20242a; }
-        QLabel:hover { background: #eef6ff; }
+        QLabel {
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 5px;
+            padding: 3px 4px;
+            margin: 1px;
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-size: 10px;
+            font-weight: 500;
+            min-width: 90px;
+            qproperty-wordWrap: true;
+            qproperty-alignment: 'AlignCenter';
+        }
+        QLabel:hover {
+            background-color: #eff6ff;
+            border: 1.5px solid #3b82f6;
+            color: #1d4ed8;
+        }
     """)
