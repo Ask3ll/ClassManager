@@ -203,13 +203,48 @@ def preference_label(widget):
     _set(widget, "QLabel { color: #30343b; padding: 4px; }")
 
 
+from PyQt5.QtWidgets import QStyle  # Убедись, что QStyle импортирован в самом верху файла!
+
+
 def delete_button(widget):
-    """Красная кнопка удаления ученика или отдельного предпочтения."""
-    _set(widget, """
-        QPushButton { background: transparent; color: #111111; border: 1px solid #c62828; border-radius: 4px; padding: 5px 9px; }
-        QPushButton:hover { background: #fff0f0; }
-        QPushButton:pressed { background: #ffdada; }
-    """)
+    """Маленькая кнопка-корзина с красивой подсветкой при наведении."""
+    # 1. Убираем текстовую надпись "Удалить"
+    widget.setText("")
+
+    # 2. Устанавливаем встроенную векторную иконку корзины Qt
+    icon = widget.style().standardIcon(QStyle.SP_TrashIcon)
+    widget.setIcon(icon)
+
+    # 3. Применяем стили с красивым эффектом наведения (Hover)
+    _set(
+        widget,
+        """
+        QPushButton {
+            background-color: transparent;
+            border: 1px solid transparent;
+            border-radius: 6px;
+
+            /* Фиксированный компактный размер 30x30 пикселей */
+            min-width: 28px;
+            max-width: 28px;
+            min-height: 28px;
+            max-height: 28px;
+            padding: 2px;
+        }
+
+        /* Эффект при наведении курсора: зажигается нежно-красный фон и рамка */
+        QPushButton:hover {
+            background-color: #fee2e2;
+            border: 1px solid #f87171;
+        }
+
+        /* Эффект при клике мышкой */
+        QPushButton:pressed {
+            background-color: #fca5a5;
+            border: 1px solid #ef4444;
+        }
+    """,
+    )
 
 
 # EditDialog.py: диалог выбора ученика для предпочтения "не сидеть вместе".
